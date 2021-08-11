@@ -1,41 +1,67 @@
-File Description:
+## Folder Structure:
 
-graph.cpp : this file generates graph matrix(graph.txt) for the given number of cities (n=500) with maximum distance between two 		cities(1000kms)
+```
+├── graph.cpp: generates random graph matrix (graph.txt) 
+├── graph.txt: contains input map(matrix) for the program
+├── helpers.h: This is the header file which contains common functions for serial and parallel program
+├── parallel.cpp: This file contains the implementation of parallel version of ant colony algorithm with MPI 
+├── random.cpp: generates the number of random numbers
+├── random.txt: contains input random numbers for choosing random city in each iteration
+├── serial.cpp: This file contains the implementation of serial version of ant colony algorithm
+└── slurms: This folder contains the slurm scripts to run parallel.cpp over 1,2,4,8 and 16 nodes
+    ├── node1.slurm: runs TSP on a single node
+    ├── node2.slurm: runs TSP on a 2 nodes
+    ├── node4.slurm: runs TSP on a 4 nodes
+    ├── node8.slurm: runs TSP on a 8 nodes
+    └── node16.slurm: runs TSP on a 16 nodes
+```
 
-graph.txt : contains input map(matrix) for the program
+## Compile and Run
 
-random.cpp : this file generates the number of random numbers given as an input (argument = number of random numbers)
- 
-random.txt :  contains input random numbers for choosing random city in each iteration
- 
-helpers.h : This is the header file which contains common functions for serial and parallel program. Some of the functions are finding the next city to visit, calculating best path, calculating the probability etc.
+### Generate input files
 
-serial.cpp : This file contains the implementation of serial version of ant colony algorithm. The input to execute this file would be graph.txt + random.txt(both mentioned above) + number of ants + number of iteration 
+To compile and run this project first need to run graph.cpp and random.cpp that will generates the input files for the program.
 
-parallel.cpp : This file contains the implementation of parallel version of ant colony algorithm with MPI. The input to execute this file would be graph.txt + random.txt(both mentioned above) + number of ants + number of external iteration + number of iteration over each node 
+Generates graph.txt file for the given number of cities (n=500) with maximum distance between two cities(1000kms)
+```
+g++ graph.cpp -o graph.out
+./graph.out
+```
 
-Slurm Folder : This folder contains the slurm scripts to run parallel.cpp over 1,2,4,8 and 16 nodes.
+Generates random.txt that utilizes for choosing random city in each iteration
+```
+g++ random.cpp -o random.out
+./random.out <random_number>
+```
+
+### Run serial version of program
+
+Given number of ants travel on all the city and most used edges are passed to the next iteration. After all iterations optimum path is provided. 
+```
+g++ serial.cpp -o serial.out
+./serial.out <graph_file> <random_number_file> <number_of_ants> <number_of_iteration> 
+e.g. ./serial.out graph.txt random.txt 32 15000
+```
+
+### Run parallel version of program
+
+In each external iteration every node iterates locally and provides optimum path to the master process. Finally master process decide optimum path after all external iterations.
+```
+mpic++ parallel.cpp -o parallel.out
+./parallel.out <graph_file> <random_number_file> <number_of_ants> <number_of_external_iteration> <number_of_iteration_on_each_node>
+e.g. ./parallel.out graph.txt random.txt 32 15000 1
+```
 
 
-To compile:
-To compile and run this project first need to run instruction 1) and 2) that will generates the input files for the program.
-3) instruction is used for the compilation and execution of the serial version of program. the 4) instruction is for the compilation of parallel code and submitting the batch jobs on spartan.
+### Run slurm files
 
+This code submit the jobs on spartan (High Performance Computing at University of Melbourne)
 
-Compile and generate inputs for the program:
-
-1)	g++ graph.cpp -o graph.out
-	./graph.out
-
-2)	g++ random.cpp -o random.out
-	./random.out 100000
-
-3)	g++ serial.cpp -o serial.out
-	./serial.out graph.txt random.txt 32 15000
-
-4)	mpic++ parallel.cpp -o parallel.out
-	sbatch node1.slurm
-	sbatch node2.slurm
-	sbatch node4.slurm
-	sbatch node8.slurm
-	sbatch node16.slurm
+```
+mpic++ parallel.cpp -o parallel.out
+sbatch node1.slurm
+sbatch node2.slurm
+sbatch node4.slurm
+sbatch node8.slurm
+sbatch node16.slurm
+```
